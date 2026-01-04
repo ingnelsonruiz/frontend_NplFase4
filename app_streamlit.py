@@ -9,14 +9,40 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilo CSS Avanzado para estética de Dashboard Profesional
+# Estilo CSS Avanzado: Corrección de color de texto en Sidebar y estética Pro
 st.markdown("""
     <style>
+    /* Fondo principal */
     .main { background-color: #f8f9fa; }
+    
+    /* Burbujas de chat */
     .stChatMessage { border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef; }
-    [data-testid="stSidebar"] { background-image: linear-gradient(#002d4b, #005691); color: white; }
+    
+    /* Configuración de la Barra Lateral (Sidebar) */
+    [data-testid="stSidebar"] {
+        background-image: linear-gradient(#002d4b, #005691);
+        color: white !important;
+    }
+    
+    /* Forzar color blanco en todos los textos de la Sidebar */
+    [data-testid="stSidebar"] .stMarkdown, 
+    [data-testid="stSidebar"] .stMarkdown p, 
+    [data-testid="stSidebar"] h3, 
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] label {
+        color: white !important;
+    }
+
+    /* Estilo para el contenedor de información en la Sidebar */
+    .info-box {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin-bottom: 10px;
+    }
+
     .stChatInput { border-radius: 10px; }
-    .header-logo { display: block; margin-left: auto; margin-right: auto; width: 25%; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -26,24 +52,20 @@ with st.sidebar:
     st.image("Logo_unad_color.png", use_container_width=True)
     
     st.markdown("### 🎓 Identificación del Proyecto")
-    st.info(f"""
-    **Fase 4:** Fundamentals of Natural Language Processing
     
-    **Estudiante:** Nelson Javier Ruiz Lozano
-    
-    **Tutor:** Andrés Felipe Hernández Giraldo
-    
-    **Curso:** Natural Language Processing
-    **Código:** 203238430 
-    
-    **Programa:**
-    Maestría en Ciencia de Datos y Analítica
-    
-    **Institución:**
-    UNAD - ECBTI
-    
-    **Fecha:** Diciembre – 2025
-    """)
+    # Contenedor con texto forzado en blanco para máxima legibilidad
+    st.markdown(f"""
+    <div class="info-box">
+        <p style="margin:0;"><strong>Fase 4:</strong> Fundamentals of NLP</p>
+        <p style="margin:0;"><strong>Estudiante:</strong> Nelson Javier Ruiz Lozano</p>
+        <p style="margin:0;"><strong>Tutor:</strong> Andrés Felipe Hernández Giraldo</p>
+        <p style="margin:0;"><strong>Curso:</strong> Natural Language Processing</p>
+        <p style="margin:0;"><strong>Código:</strong> 203238430</p>
+        <p style="margin:0;"><strong>Programa:</strong> Maestría en Ciencia de Datos y Analítica</p>
+        <p style="margin:0;"><strong>Institución:</strong> UNAD - ECBTI</p>
+        <p style="margin:0;"><strong>Fecha:</strong> Diciembre – 2025</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("---")
     st.write("### 🛠️ Control de Sesión")
@@ -53,7 +75,7 @@ with st.sidebar:
 
 # --- CUERPO PRINCIPAL ---
 
-# La "Cereza del Pastel": Logo de Ciencia de Datos arriba del título
+# Logo de Ciencia de Datos arriba del título (La Cereza del Pastel)
 col_left, col_mid, col_right = st.columns([1, 2, 1])
 with col_mid:
     st.image("logo_datos.png", use_container_width=True)
@@ -96,25 +118,25 @@ if prompt := st.chat_input("Consulte aquí información sobre la Fase 4 o concep
                 response = requests.post(API_URL, json={"question": prompt})
                 
                 if response.status_code == 200:
-                    raw_answer = response.json().get("respuesta", "Lo siento, no pude encontrar una respuesta precisa en la base de datos.")
+                    raw_answer = response.json().get("respuesta", "Lo siento, no pude encontrar una respuesta precisa.")
                     
-                    # Efecto de escritura (Typing effect)
+                    # Efecto de escritura (Typing effect) profesional
                     full_response = ""
                     message_placeholder = st.empty()
                     status_msg.empty() 
                     
                     for chunk in raw_answer.split():
                         full_response += chunk + " "
-                        time.sleep(0.04) # Velocidad de escritura profesional
+                        time.sleep(0.04) 
                         message_placeholder.markdown(full_response + "▌")
                     message_placeholder.markdown(full_response)
                 else:
-                    full_response = "⚠️ Error de comunicación: El backend en Render no respondió correctamente."
+                    full_response = "⚠️ Error de comunicación: El backend no respondió correctamente."
                     st.error(full_response)
             
             except Exception as e:
                 full_response = f"❌ Error de red: No se pudo conectar con la API ({str(e)})"
                 st.error(full_response)
 
-    # 3. Guardar en el historial para persistencia de la sesión
+    # 3. Guardar en el historial
     st.session_state.messages.append({"role": "assistant", "content": full_response})
