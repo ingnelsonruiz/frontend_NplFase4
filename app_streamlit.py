@@ -2,102 +2,112 @@ import streamlit as st
 import requests
 import time
 
-# --- CONFIGURACIÓN DE PÁGINA ---
+# --- CONFIGURACIÓN ESTÉTICA DE ALTO NIVEL ---
 st.set_page_config(
     page_title="UNAD NLP Assistant Pro",
     page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# --- ESTILOS PERSONALIZADOS (UI/UX Avanzada) ---
+# Estilo CSS para profesionalismo visual (Modo Moderno)
 st.markdown("""
     <style>
-    /* Estilo para el contenedor de chat */
-    .stChatMessage {
-        background-color: #ffffff;
-        border: 1px solid #e1e4e8;
-        border-radius: 20px;
-        padding: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    /* Estilo para la barra lateral */
-    .css-1d391kg {
-        background-color: #002d4b;
-    }
-    /* Ajuste de botones */
-    .stButton>button {
-        border-radius: 10px;
-        width: 100%;
-        background-color: #fca311;
-        color: white;
-    }
+    .main { background-color: #f0f2f6; }
+    .stChatMessage { border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .sidebar .sidebar-content { background-image: linear-gradient(#2e7bcf,#052b5e); color: white; }
+    div[data-testid="stExpander"] { border: none; box-shadow: none; background-color: transparent; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- LÓGICA DE BACKEND ---
-API_URL = "https://nlpfase4.onrender.com/chat"
-
-def get_bot_response(user_query):
-    try:
-        response = requests.post(API_URL, json={"question": user_query}, timeout=30)
-        if response.status_code == 200:
-            return response.json().get("respuesta", "Lo siento, no pude procesar la información.")
-        return f"⚠️ Error del servidor: {response.status_code}"
-    except Exception as e:
-        return f"❌ Error de conexión: {str(e)}"
-
-# --- SIDEBAR (Información del Proyecto UNAD) ---
+# --- SIDEBAR: IDENTIFICACIÓN INSTITUCIONAL (Tu Información) ---
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/5/5f/Logo_UNAD.png", width=150)
-    st.title("Panel de Control")
-    st.info(f"**Curso:** NLP\n\n**Fase:** 4 - Aplicaciones Avanzadas [cite: 7, 11]")
+    # Logo de la UNAD (Usando el archivo que tienes en GitHub)
+    st.image("Logo_unad_color.png", use_container_width=True)
+    
+    st.markdown("### 🎓 Identificación del Proyecto")
+    st.info(f"""
+    **Fase 4:** Fundamentals of Natural Language Processing [cite: 6, 7]
+    
+    **Estudiante:** Nelson Javier Ruiz Lozano
+    
+    **Tutor:** Andrés Felipe Hernández Giraldo
+    
+    **Curso:** Natural Language Processing [cite: 7]
+    **Código:** 203238430 
+    
+    **Programa:**
+    Maestría en Ciencia de Datos y Analítica
+    
+    **Institución:**
+    UNAD - ECBTI [cite: 4, 11]
+    
+    **Fecha:** Diciembre – 2025
+    """)
+    
     st.markdown("---")
-    st.write("### Métricas de Sistema")
-    st.status("Backend: Online ✅")
-    st.status("Knowledge Base: Active 📚")
-    if st.button("Limpiar Conversación"):
+    if st.button("🗑️ Limpiar Memoria de Chat"):
         st.session_state.messages = []
         st.rerun()
 
 # --- CUERPO PRINCIPAL ---
-st.title("🧠 UNAD AI: Advanced NLP Interface")
-st.caption("Sistema Experto basado en LangChain, OpenAI y ChromaDB [cite: 17, 27, 43]")
+st.title("🧠 Advanced NLP Interface")
+st.write("Sistema RAG con recuperación de información en tiempo real.")
 
-# Historial de mensajes
+# URL de tu API en Render
+API_URL = "https://nlpfase4.onrender.com/chat"
+
+# Inicializar historial
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Contenedor de chat con scroll
-chat_container = st.container()
+# Contenedor para el historial de chat
+chat_placeholder = st.container()
 
-with chat_container:
+with chat_placeholder:
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-# --- INPUT PROFESIONAL (Auto-limpiable) ---
-if prompt := st.chat_input("Escribe tu consulta sobre la Fase 4..."):
-    # Insertar mensaje de usuario
+# --- INPUT PROFESIONAL (Auto-limpiable y con Botón de Envío) ---
+# st.chat_input ya incluye el botón de envío y limpia el texto automáticamente
+if prompt := st.chat_input("Escribe aquí tu consulta técnica..."):
+    
+    # Mostrar mensaje del usuario
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with chat_container:
+    with chat_placeholder:
         with st.chat_message("user"):
             st.markdown(prompt)
 
-    # Respuesta del bot con efecto de escritura
-    with chat_container:
+    # Respuesta del bot con efecto de "escritura"
+    with chat_placeholder:
         with st.chat_message("assistant"):
-            response_placeholder = st.empty()
-            full_response = ""
+            status_msg = st.empty()
+            status_msg.markdown("🔎 *Consultando base de conocimientos local...*")
             
-            # Llamada real al backend
-            raw_answer = get_bot_response(prompt)
+            try:
+                # Petición a tu API en Render
+                response = requests.post(API_URL, json={"question": prompt})
+                
+                if response.status_code == 200:
+                    raw_answer = response.json().get("respuesta", "Sin respuesta.")
+                    
+                    # Efecto de typing para mayor profesionalismo
+                    full_response = ""
+                    message_placeholder = st.empty()
+                    status_msg.empty() # Quitamos el mensaje de "consultando"
+                    
+                    for chunk in raw_answer.split():
+                        full_response += chunk + " "
+                        time.sleep(0.05)
+                        message_placeholder.markdown(full_response + "▌")
+                    message_placeholder.markdown(full_response)
+                else:
+                    full_response = "⚠️ Error de comunicación con el Backend de Render."
+                    st.error(full_response)
             
-            # Simulación de 'typing' para profesionalismo visual
-            for chunk in raw_answer.split():
-                full_response += chunk + " "
-                time.sleep(0.05)
-                response_placeholder.markdown(full_response + "▌")
-            response_placeholder.markdown(full_response)
-    
+            except Exception as e:
+                full_response = f"❌ Error de conexión: {str(e)}"
+                st.error(full_response)
+
+    # Guardar en el historial
     st.session_state.messages.append({"role": "assistant", "content": full_response})
